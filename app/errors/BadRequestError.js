@@ -4,7 +4,7 @@ class BadRequestError extends HttpError {
     constructor(...args) {
         super(...args);
         this.code = 400;
-        this.message = 'Bad Request';
+        this.defaultMessage('Bad Request');
     }
 }
 

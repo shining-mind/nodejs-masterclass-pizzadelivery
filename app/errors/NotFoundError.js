@@ -4,7 +4,7 @@ class NotFoundError extends HttpError {
     constructor(...args) {
         super(...args);
         this.code = 404;
-        this.message = 'Not Found';
+        this.defaultMessage('Not found');
     }
 }
 
