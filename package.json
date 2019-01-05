@@ -1,0 +1,20 @@
+{
+  "name": "pizzadelivery",
+  "version": "1.0.0",
+  "description": "Nodejs Masterclass | Pizza Delivery API | Homework #2",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shining-mind/nodejs-masterclass-pizzadelivery.git"
+  },
+  "author": "Artem Shinkaruk <coder@neos1.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/shining-mind/nodejs-masterclass-pizzadelivery/issues"
+  },
+  "homepage": "https://github.com/shining-mind/nodejs-masterclass-pizzadelivery#readme"
+}

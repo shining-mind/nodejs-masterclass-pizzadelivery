@@ -20,8 +20,14 @@ config
 ## Start
 
 ```bash
-node ./index.js
+npm start
 ```
 
 Application will start on default port 3000.
 To use another port, please change env variable `SERVER_PORT` to your desired port number.
+
+## Testing
+
+```
+npm test
+```
