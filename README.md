@@ -4,7 +4,7 @@ Nodejs Masterclass | Pizza Delivery API | Homework #2
 ## Directory structure
 
 ```
-app
+app/ - application business logic
 - routes/
 -- index.js - all handlers
 - errors/
@@ -13,8 +13,11 @@ app
 -- NotFoundError.js - response with statusCode 404
 -- index.js - all errors
 - server.js - server logic
-config
+config/
 - index.js
+lib/
+- tests/ - testing library
+- Pipeline.js - helper for sending passables through pipeline of callables
 ```
 
 ## Start

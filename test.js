@@ -6,4 +6,4 @@ const {
     run,
 } = require('./lib/tests');
 
-run(path.join(__dirname, 'app'));
+run(path.join(__dirname));
