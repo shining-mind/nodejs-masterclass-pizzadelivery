@@ -1,8 +1,12 @@
+const assert = require('assert');
 const { MethodNotAllowedError, UnprocessableEntityError } = require('../errors');
 const Pipeline = require('../../lib/Pipeline');
+const Storage = require('../../lib/store/Storage');
 
 /**
- * @property {Array} allowedMethods
+ * @property {String[]} allowedMethods
+ * @property {Function[]} middleware
+ * @property {Storage} storage
  */
 class RouteController {
     constructor({
@@ -13,9 +17,12 @@ class RouteController {
             'delete',
         ],
         middleware = [],
+        storage,
     } = {}) {
+        assert(storage instanceof Storage);
         this.allowedMethods = allowedMethods;
         this.middleware = middleware;
+        this.storage = storage;
     }
 
     /**
