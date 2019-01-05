@@ -12,10 +12,10 @@ class RouteController {
             'put',
             'delete',
         ],
-        middlewares = [],
+        middleware = [],
     } = {}) {
         this.allowedMethods = allowedMethods;
-        this.middlewares = middlewares;
+        this.middleware = middleware;
     }
 
     /**
@@ -31,8 +31,18 @@ class RouteController {
         }
         return new Pipeline()
             .send(ctx)
-            .through(this.middlewares)
+            .through(this.getMiddleware(ctx.method))
             .then(this[method].bind(this));
+    }
+
+
+    /**
+     * @param {String} method
+     * 
+     * @returns {Array}
+     */
+    getMiddleware(method) {
+        return this.middleware;
     }
 }
 
