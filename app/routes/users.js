@@ -1,5 +1,8 @@
 const RouteController = require('../base/RouteController');
+const { ForbiddenError, InternalServerError } = require('../errors');
 const { authenticated } = require('../middleware');
+const { md5, Password } = require('../../lib/hash');
+const storage = require('../storage');
 
 class UsersController extends RouteController {
     getMiddleware(method) {
@@ -8,20 +11,69 @@ class UsersController extends RouteController {
         }
         return super.getMiddleware(method);
     }
-    _post() {
-        return { message: 'User created' };
+
+    _post({ payload }) {
+        // TODO: validate
+        const { firstName, email, address, password } = payload;
+        const id = md5(email);
+        const { salt, hash: passwordHash } = Password.hash(password.toString());
+        return this.storage.collection('users').create(id, {
+            id,
+            firstName,
+            email,
+            address,
+            passwordHash,
+            salt,
+        })
+            .then(() => {
+                return {
+                    id,
+                };
+            })
+            .catch((error) => {
+                if (error.code === 'EEXIST') {
+                    return Promise.reject(new ForbiddenError(`User with email '${email}' exists`));
+                }
+                return Promise.reject(error);
+            });
     }
 
-    _get() {
-        return { message: 'User extracted' };
+    _get({ app }) {
+        return app.user;
     }
 
-    _put() {
-        return { message: 'User updated' };
+    _put({ app, payload }) {
+        const { user } = app;
+        // TODO: validate
+        const { firstName, address, password } = payload;
+        let updateFields = {};
+        if (firstName) {
+            updateFields.firstName = firstName;
+        }
+        if (address) {
+            updateFields.address = address;
+        }
+        if (password) {
+            const { salt, hash: passwordHash } = Password.hash(password.toString());
+            updateFields = {
+                ...updateFields,
+                salt,
+                passwordHash,
+            };
+        }
+        return this.storage.collection('users').update(user.id, updateFields)
+            .catch(() => Promise.reject(new InternalServerError('Failed to update user')));
     }
 
-    _delete() {
-        return { message: 'User deleted' };
+    _delete({ app }) {
+        return this.storage.collection('users')
+            .delete(app.user.id)
+            .then(() => {
+                return {};
+            })
+            .catch(() => {
+                throw new InternalServerError('Failed to delete user');
+            });
     }
 }
 
@@ -29,6 +81,7 @@ const controller = new UsersController({
     middleware: [
         authenticated,
     ],
+    storage,
 });
 
 module.exports = controller.handleRequest.bind(controller);
