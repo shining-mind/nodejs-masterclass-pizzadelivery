@@ -82,6 +82,7 @@ const server = createServer((req, res) => {
         pathname: path,
         headers: req.headers,
         method: req.method.toLowerCase(),
+        app: {},
     };
     /**
      * @param {String} payload 
