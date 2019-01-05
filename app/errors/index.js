@@ -5,6 +5,7 @@ const MethodNotAllowedError = require('./MethodNotAllowedError');
 const UnprocessableEntityError = require('./UnprocessableEntityError');
 const InternalServerError = require('./InternalServerError');
 const UnauthorizedError = require('./UnauthorizedError');
+const ForbiddenError = require('./ForbiddenError');
 
 module.exports = {
     HttpError,
@@ -14,4 +15,5 @@ module.exports = {
     UnprocessableEntityError,
     InternalServerError,
     UnauthorizedError,
+    ForbiddenError,
 };
