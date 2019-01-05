@@ -1,8 +1,20 @@
 const { createServer } = require('http');
 const { parse } = require('url');
 const { StringDecoder } = require('string_decoder');
-const { HttpError, NotFoundError, BadRequestError } = require('./errors');
+const {
+    HttpError,
+    NotFoundError,
+    BadRequestError,
+    InternalServerError,
+} = require('./errors');
 const routes = require('./routes');
+
+const BODYLESS_METHODS = [
+    'get',
+    'head',
+    'options',
+    'delete',
+];
 
 /**
  * @param {Function} handler
@@ -12,9 +24,9 @@ const routes = require('./routes');
 const handlerResponseDecorator = (handler) => {
     return async (...args) => {
         try {
-            const payload = args[0] !== '' ? JSON.parse(args[0]) : {};
             const ctx = args[1];
-            const body = await handler.apply(this, [payload, ctx]);
+            ctx.payload = args[0] !== '' ? JSON.parse(args[0]) : {};
+            const body = await handler.apply(this, [ctx]);
             return {
                 statusCode: 200,
                 body: typeof body === 'object' ? body : {},
@@ -24,7 +36,7 @@ const handlerResponseDecorator = (handler) => {
             if (error instanceof SyntaxError) {
                 responseError = new BadRequestError();
             } else if ((error instanceof HttpError) === false) {
-                responseError = new HttpError();
+                responseError = new InternalServerError();
             }
             return {
                 statusCode: responseError.code,
@@ -62,9 +74,6 @@ const chooseHandler = (routeParts) => {
 
 const server = createServer((req, res) => {
     const parsedUrl = parse(req.url, true);
-    let buffer = '';
-    const decoder = new StringDecoder('utf-8');
-    req.on('data', data => buffer += decoder.write(data));
     const path = parsedUrl.pathname.replace(/^\/+|\/+$/g, '');
     const handler = chooseHandler(path.split('/'));
     const ctx = {
@@ -72,20 +81,28 @@ const server = createServer((req, res) => {
         query: parsedUrl.query,
         pathname: path,
         headers: req.headers,
+        method: req.method.toLowerCase(),
     };
+    /**
+     * @param {String} payload 
+     */
     const sendResponse = async (payload) => {
         const { statusCode, body } = await handler(payload, ctx);
         res.setHeader('Content-Type', 'application/json');
         res.writeHead(statusCode);
         res.end(JSON.stringify(body));
     };
-    // TODO: add to routes http method bind
-    // for bodyless methods don't wait for end event
-    // just send response
-    req.on('end', () => {
-        buffer += decoder.end();
-        sendResponse(buffer);
-    });
+    if (BODYLESS_METHODS.indexOf(ctx.method) !== -1) {
+        sendResponse('');
+    } else {
+        let buffer = '';
+        const decoder = new StringDecoder('utf-8');
+        req.on('data', data => buffer += decoder.write(data));
+        req.on('end', () => {
+            buffer += decoder.end();
+            sendResponse(buffer);
+        });
+    }
 });
 
 module.exports = server;
