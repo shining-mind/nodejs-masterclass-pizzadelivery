@@ -8,10 +8,14 @@ module.exports = function authenticated(ctx, next) {
         throw new UnauthorizedError();
     }
     const token = matches[1];
-    return storage.collection('tokens').exists(token).then((exists) => {
-        if (!exists) {
-            throw new UnauthorizedError();
-        }
-        return next(ctx);
-    });
+    // TODO: read from tokens
+    return storage.collection('users').read(token)
+        .then((user) => {
+            if (!user || !user.id) {
+                throw new UnauthorizedError();
+            }
+            ctx.app.user = user;
+            return next(ctx);
+        })
+        .catch(() => Promise.reject(new UnauthorizedError()));
 };
