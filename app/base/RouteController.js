@@ -62,6 +62,7 @@ class RouteController {
      */
     validate(payload, rules) {
         const schema = this.Validator.object().keys(rules).required();
+        schema.name = 'request body';
         const { error, value } = this.Validator.validate(payload, schema);
         if (error) {
             throw new UnprocessableEntityError(error.message);
