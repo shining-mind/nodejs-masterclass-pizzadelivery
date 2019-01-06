@@ -2,7 +2,6 @@ const RouteController = require('../base/RouteController');
 const { ForbiddenError, InternalServerError } = require('../errors');
 const { authenticated } = require('../middleware');
 const { md5, Password } = require('../../lib/hash');
-const storage = require('../storage');
 
 class UsersController extends RouteController {
     getMiddleware(method) {
@@ -13,8 +12,13 @@ class UsersController extends RouteController {
     }
 
     _post({ payload }) {
-        // TODO: validate
-        const { firstName, email, address, password } = payload;
+        const { Validator } = this;
+        const { firstName, email, address, password } = this.validate(payload, {
+            firstName: Validator.string().min(5).required(),
+            email: Validator.string().email().required(),
+            address: Validator.string().min(5).max(25).required(),
+            password: Validator.string().min(6).required(),
+        });
         const id = md5(email);
         const { salt, hash: passwordHash } = Password.hash(password.toString());
         return this.storage.collection('users').create(id, {
@@ -44,8 +48,12 @@ class UsersController extends RouteController {
 
     _put({ app, payload }) {
         const { user } = app;
-        // TODO: validate
-        const { firstName, address, password } = payload;
+        const { Validator } = this;
+        const { firstName, address, password } = this.validate(payload, {
+            firstName: Validator.string().min(5).optional(),
+            address: Validator.string().min(5).max(25).optional(),
+            password: Validator.string().min(6).optional(),
+        });
         let updateFields = {};
         if (firstName) {
             updateFields.firstName = firstName;
@@ -81,7 +89,6 @@ const controller = new UsersController({
     middleware: [
         authenticated,
     ],
-    storage,
 });
 
 module.exports = controller.handleRequest.bind(controller);

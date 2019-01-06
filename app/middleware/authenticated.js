@@ -10,12 +10,12 @@ module.exports = function authenticated(ctx, next) {
     const token = matches[1];
     // TODO: read from tokens
     return storage.collection('users').read(token)
+        .catch(() => Promise.reject(new UnauthorizedError()))
         .then((user) => {
             if (!user || !user.id) {
                 throw new UnauthorizedError();
             }
             ctx.app.user = user;
             return next(ctx);
-        })
-        .catch(() => Promise.reject(new UnauthorizedError()));
+        });
 };
