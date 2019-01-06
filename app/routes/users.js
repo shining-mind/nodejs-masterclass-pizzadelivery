@@ -14,9 +14,9 @@ class UsersController extends RouteController {
     _post({ payload }) {
         const { Validator } = this;
         const { firstName, email, address, password } = this.validate(payload, {
-            firstName: Validator.string().min(5).required(),
+            firstName: Validator.string().min(5).max(60).required(),
             email: Validator.string().email().required(),
-            address: Validator.string().min(5).max(25).required(),
+            address: Validator.string().min(5).max(60).required(),
             password: Validator.string().min(6).required(),
         });
         const id = md5(email);
@@ -50,8 +50,8 @@ class UsersController extends RouteController {
         const { user } = app;
         const { Validator } = this;
         const { firstName, address, password } = this.validate(payload, {
-            firstName: Validator.string().min(5).optional(),
-            address: Validator.string().min(5).max(25).optional(),
+            firstName: Validator.string().min(5).max(60).optional(),
+            address: Validator.string().min(5).max(60).optional(),
             password: Validator.string().min(6).optional(),
         });
         let updateFields = {};
@@ -70,6 +70,7 @@ class UsersController extends RouteController {
             };
         }
         return this.storage.collection('users').update(user.id, updateFields)
+            .then(({ modified }) => modified)
             .catch(() => Promise.reject(new InternalServerError('Failed to update user')));
     }
 
