@@ -7,10 +7,18 @@ module.exports = function authenticated(ctx, next) {
     if (!authorization || typeof authorization !== 'string' || !(matches = authorization.match(/^Bearer (.{32})$/))) {
         throw new UnauthorizedError();
     }
-    const token = matches[1];
-    // TODO: read from tokens
-    return storage.collection('users').read(token)
-        .catch(() => Promise.reject(new UnauthorizedError()))
+    const tokenId = matches[1];
+    return storage.collection('tokens').read(tokenId).then((token) => {
+        if (!token || !token.id) {
+            throw new UnauthorizedError('Invalid token');
+        }
+        if (token.expires < Date.now()) {
+            throw new UnauthorizedError('Expired token');
+        }
+        ctx.app.token = token;
+        return storage.collection('users').read(token.userId);
+    })
+        .catch(error => Promise.reject(error instanceof UnauthorizedError ? error : new UnauthorizedError()))
         .then((user) => {
             if (!user || !user.id) {
                 throw new UnauthorizedError();
