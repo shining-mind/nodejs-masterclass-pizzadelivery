@@ -1,7 +1,7 @@
-const assert = require('assert');
 const { MethodNotAllowedError, UnprocessableEntityError } = require('../errors');
 const Pipeline = require('../../lib/Pipeline');
-const Storage = require('../../lib/store/Storage');
+const storage = require('../storage');
+const Validator = require('../Validator');
 
 /**
  * @property {String[]} allowedMethods
@@ -17,12 +17,11 @@ class RouteController {
             'delete',
         ],
         middleware = [],
-        storage,
     } = {}) {
-        assert(storage instanceof Storage);
         this.allowedMethods = allowedMethods;
         this.middleware = middleware;
         this.storage = storage;
+        this.Validator = Validator;
     }
 
     /**
@@ -50,6 +49,21 @@ class RouteController {
      */
     getMiddleware(method) {
         return this.middleware;
+    }
+
+    /**
+     * @param {Object} payload
+     * @param {Object} rules
+     * 
+     * @returns {Object}
+     */
+    validate(payload, rules) {
+        const schema = this.Validator.object().keys(rules).required();
+        const { error, value } = this.Validator.validate(payload, schema);
+        if (error) {
+            throw new UnprocessableEntityError(error.message);
+        }
+        return value;
     }
 }
 
