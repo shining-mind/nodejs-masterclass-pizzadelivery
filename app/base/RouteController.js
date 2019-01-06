@@ -2,11 +2,13 @@ const { MethodNotAllowedError, UnprocessableEntityError } = require('../errors')
 const Pipeline = require('../../lib/Pipeline');
 const storage = require('../storage');
 const Validator = require('../Validator');
+const config = require('../../config');
 
 /**
  * @property {String[]} allowedMethods
  * @property {Function[]} middleware
  * @property {Storage} storage
+ * @property {Object} config
  */
 class RouteController {
     constructor({
@@ -22,6 +24,7 @@ class RouteController {
         this.middleware = middleware;
         this.storage = storage;
         this.Validator = Validator;
+        this.config = config;
     }
 
     /**
